@@ -1,0 +1,534 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage{beamerthemesplit}
+\usepackage{wrapfig}
+\usepackage{pdfpages}
+\usepackage{amsmath}
+\usepackage{cmap} 
+\usepackage[T2A]{fontenc} 
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{indentfirst}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{multirow}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usetikzlibrary{shapes,arrows}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{wrapfig}
+\usepackage{appendixnumberbeamer}
+
+\beamertemplatenavigationsymbolsempty
+
+% То, что в квадратных скобках, отображается внизу по центру каждого слайда. 
+\title[Сети Петри]{Сети Петри и их использование для верификации программ}
+
+% То, что в квадратных скобках, отображается в левом нижнем углу. 
+\institute[СПбГУ]{}
+
+% То, что в квадратных скобках, отображается в левом нижнем углу.
+\author[Д.В. Павлушкин, А.Ю. Лановая, А.А. Лекомцев]{Дмитрий Владимирович Павлушкин, Александра Юрьевна Лановая, Александр Алексеевич Лекомцев}
+\date{Математико-механический факультет, Программная инженерия, 1 курс}
+\begin{document}
+{
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+\begin{frame}
+\begin{center}
+   \begin{tabular}{c}
+        \scriptsize{Санкт-Петербургский государственный университет} \\
+        \scriptsize{Кафедра системного программирования}
+    \end{tabular}
+\titlepage
+\end{center}
+\begin{center}
+  \vspace{5pt}
+  \scriptsize{06.04.2023}
+  \end{center}
+
+\end{frame}
+}
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+\begin{frame}[fragile]  
+  \frametitle{Содержание доклада}
+  \begin{itemize}
+    \item Краткая биография Карла Петри, с чего все начиналось
+    \item Общая терминология
+    \item Математическая модель
+    \item Использование в программах для верификации
+  \end{itemize}
+\end{frame}
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+\begin{frame}[fragile]  
+  \frametitle{Химический пример}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Untitled.png}
+        \end{figure}
+    Термины:
+      \begin{itemize}
+    \item Кружочки - атомы или хим. соединение
+    \item Черные точки - метки перехода
+    \item Прямоугольники - хим. реакции. 
+    \item Стрелочки - направление перехода
+  \end{itemize}
+\end{frame}
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+\begin{frame}[fragile]  
+  \frametitle{Химический пример}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Untitled.png}
+        \end{figure}
+    Правила:
+    \begin{itemize}
+    \item Пока не “соберутся” все маркеры перехода, ведущие к хим. реакции, она не запустится
+    \item Как только они “собираются”, происходит хим. реакция, которая забирает у каждой молекулы по одной метке перехода и “отдает” по одной другому соединению. Или не одной, это зависит от того, какое число написано над стрелочкой. По умолчанию оно равно 1
+    \end{itemize}
+\end{frame}
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+\begin{frame}[fragile]  
+  \frametitle{Химический пример}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Untitled (1).png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Химический пример}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Untitled (2).png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Химический пример}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Untitled (3).png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Биография Карла Петри}
+  \begin{tabular}{c c}
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth]{petri.jpg} 
+      \caption{Карл Петри (1926-2010)}
+    \end{minipage}
+    &
+    \begin{minipage}{.53\textwidth}
+    \begin{itemize}
+        \item 1939г. --- Первое появление концепции "сетей Петри"
+        \item 1941г. --- Знакомится с трудами Конрада Цузе и начинает собирать собственный аналоговый компьютер
+        \item 2008г. --- Награда Компьютерного общества IEEE «Пионер компьютерной техники» (Computer Pioneer Award)
+      \end{itemize}
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Общая терминология}
+  \begin{tabular}{c c}
+    \begin{minipage}{.4\textwidth}
+      \includegraphics[width=\linewidth]{imgonline-com-ua-Replace-color-qYCWLYAdiF.jpg} 
+    \end{minipage}
+    &
+    \begin{minipage}{.53\textwidth}
+         --- Позиции (places) хранят метки \\
+         --- Дуги связывают позиции и переходы \\
+         --- Переходы (transitions) перемещают метки
+    \end{minipage}
+  \end{tabular}
+  \end{frame}
+  \newcommand\tab[1][0.4cm]{\hspace*{#1}}
+  \begin{frame}
+    \frametitle{Общая терминология}
+    \begin{itemize}
+        \item Переходы могут быть связаны только с позициями (и наоборот)
+        \item Переход может \textbf{сработать} когда в каждой входной позиции есть по меньшей мере одна метка
+        \item \textbf{Срабатывание} перехода забирает по одной метке из каждой
+        входной позициии добавляет по одной метке в каждую выходную позицию
+    \end{itemize}
+  \end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Способы задания сетей Петри}
+  \begin{itemize}
+      \item Аналитический \\ \tab Перечисление элементов множеств позиций, переходов, перечисление элементов комплектов входной и выходной функций
+      \item Графический \\ \tab Представляет собой двудольный, ориентированный мультиграф
+      \item Матричный \\ \tab Матрица имеет n столбцов (по числу вершин мест) и k строк (по числу вершин переходов). Элементами являются нули и единицы. Единица - если имеется дуга от вершины места к вершине перехода, иначе ноль
+  \end{itemize}
+\end{frame}
+  \begin{frame}{Пример}
+        \begin{figure}[ht]
+        \centering
+    \includegraphics[width=\linewidth]{imgonline-com-ua-Replace-color-KCEkwPJQZVa.jpg}
+        \end{figure}
+  \end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Более строгое определение}
+      \begin{figure}[ht]
+        \centering
+      \includegraphics[width=0.53\linewidth]{pp.png} 
+    \end{figure}
+    \textbf{Сеть Петри} - это двудольный ориентированный мультиграф A=(P,T,I,O), где:
+    \begin{itemize}
+        \item \textbf{P} – множество состояний;
+        \item \textbf{T} – множество переходов;
+        \item \textbf{I} – множество (картеж) входных дуг;
+        \item \textbf{O} – множество (картеж) выходных дуг;  
+      \end{itemize}
+      \textbf{Маркировка СП} – расстановка фишек в состояниях СП. Это вектор неотрицательных целых чисел, размерность которого равна числу состояний СП.
+\end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Более строгое определение}
+      \begin{figure}[ht]
+        \centering
+      \includegraphics[width=0.53\linewidth]{pp.png} 
+    \end{figure}
+    \begin{itemize}
+        \item Состояния (P): P=\{$P_1,P_2,P_3,P_4$\}
+        \item Переходы (T): T=\{$t_1,t_2$\}
+        \item Маркировка ($\mu$): $\mu$=(1,0,2,1)$^T$
+        \item Входы (I): I($t_1$)=\{$P_1$\}; I($t_2$)=\{$P_3,P_2$\}
+        \item Выходы (O): O($t_1$)=\{$P_2,P_3$\}; O($t_2$)=\{$P_1,P_4$\}
+    \end{itemize}
+\end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Выполнение сети Петри}
+\begin{tabular}{c c}
+    \begin{minipage}{.35\textwidth}
+      \includegraphics[width=\linewidth]{vyp.png} 
+    \end{minipage}
+    &
+    \begin{minipage}{.53\textwidth}
+    Срабатывание перехода t - это удаление по одной метке из позиций $p_i$, из которых ведут рёбра в t и добавление метки в каждую позицию $p_j$, в которую ведут ориентированные рёбра из t \\
+    Переход t разрешен, если каждая позиция $p_i$, из которых ведут рёбра в t, содержит метку
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Выполнение сети Петри}
+\begin{tabular}{c c}
+    \begin{minipage}{.4\textwidth}
+      \includegraphics[width=\linewidth]{vyp2.png} 
+    \end{minipage}
+    &
+    \begin{minipage}{.53\textwidth}
+    Срабатывание перехода предполагается мгновенным и может произойти в любой момент, когда переход разрешен \\
+    Единовременно может быть разрешен только один переход \\
+    Если в некоторый момент времени не существует разрешенного перехода, то процесс, описывающий сеть Петри, завершается
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Выполнение сетей Петри}
+      \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.56\linewidth]{vyp3.png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Виды событий}
+  \begin{tabular}{c c}
+    \begin{minipage}{.45\textwidth}
+      \includegraphics[width=\linewidth]{1.png} 
+      \caption{Одновременное событие}
+    \end{minipage}
+    &
+    \begin{minipage}{.45\textwidth}
+    \includegraphics[width=\linewidth]{2.png} 
+    \caption{Конфликт (зависит от последовательности выполнения переходов)}
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Проверка критериев сети Петри при их моделирование}
+  \begin{itemize}
+      \item \textbf{Ограниченность} --- число меток в любой позиции сети не может превысить некоторого значения K
+      \item \textbf{Безопасность} --- СП называется безопасной, если каждая позиция содержит не более одной метки
+      \item \textbf{Консервативность} --- СП называется консервативной, если общее количество меток во всех позициях всегда постоянно
+      \item \textbf{Достижимость} --- возможность перехода сети из одного заданного состояния (характеризуемого распределением меток) в другое
+      \item \textbf{Живучесть} --- возможность срабатывания любого перехода при функционировании моделируемого объекта  
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Некоторые виды сетей Петри}
+  \begin{itemize}
+      \item \textbf{Временная} сеть Петри --- переходы обладают весом, определяющим продолжительность срабатывания (задержку)
+      \item \textbf{Стохастическая} сеть Петри --- задержки являются случайными величинами
+      \item \textbf{Цветная} сеть Петри --- метки могут быть различных типов, обозначаемых цветами, тип метки может быть использован как аргумент в функциональных сетях
+      \item \textbf{Ингибиторная} сеть Петри --- возможны ингибиторные дуги, запрещающие срабатывания перехода, если во входной позиции, связанной с переходом ингибиторной дугой, находится метка
+      \item \textbf{Иерархическая} сеть --- содержит немгновенные переходы, в которые вложены другие, возможно, также иерархические, сети
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Физическая интерпретация при моделировании компьютерных сетей}
+  \begin{itemize}
+      \item Позиции --- место хранения данных
+      \item Метки --- передаваемые данные
+      \item Переходы --- обработка данных
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Конечные автоматы vs Сети Петри}
+  \begin{tabular}{c c}
+    \begin{minipage}{.48\textwidth}
+      \includegraphics[width=\linewidth]{ka.jpeg} 
+      \caption{Конечный Автомат}
+    \end{minipage}
+    &
+    \begin{minipage}{.48\textwidth}
+    \includegraphics[width=\linewidth]{bbbb.png} 
+    \caption{Сети Петри}
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Механизмы синхронизации процессов}
+  Взаимодействие процессов требует распределения ресурсов между ними. Чтобы система работала правильно распределением ресурсов необходимо управлять. Это управление в основном сводится к задачам синхронизации взаимодействия процессов
+  \end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Задача о производителе/потребителе}
+  Процесс производитель порождает компоненту информации и размещает ее в буфер. Процесс потребитель ждет пока компонента информации разместится в буфере, после этого он может ее удалить из буфера и использовать \\
+  Как правило используется буфер ограниченной емкости, то есть имеется возможность разместить в нем не более n компонентов данных
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Задача о производителе/потребителе}
+  \begin{tabular}{c c}
+    \begin{minipage}{.47\textwidth}
+    Буферу сопоставлены две позиции: \\
+    $B$ --- указывает на количество компонентов данных размещенных в буфере, но еще не использованных \\
+    $B^0$ --- количество свободных мест в буфере для размещения компонентов данных
+    \end{minipage}
+    &
+    \begin{minipage}{.43\textwidth}
+    \includegraphics[width=\linewidth]{mmm.png} 
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Недостатки}
+  \begin{itemize}
+      \item Моделируют управление потоком, но не сам поток данных
+      \item Сложность описания одновременных действий, происходящих во время вычислительного процесса 
+      \item Физическая интерпретация перехода в сетях Петри весьма сомнительна
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Задачка}
+  \begin{tabular}{c c}
+    \begin{minipage}{.43\textwidth}
+      \includegraphics[width=\linewidth]{Untitled (6).png} 
+    \end{minipage}
+    &
+    \begin{minipage}{.56\textwidth}
+    Пять безмолвных философов сидят вокруг круглого стола, перед каждым философом стоит миска с рисом и по бокам палочки для еды. Палочка лежит на столе между каждой парой ближайших философов.\\ Каждый философ может либо есть, либо размышлять. Количество риса не ограничено. Философ может есть только тогда, когда держит две палочки — взятую справа и слева
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Решение}
+  \begin{tabular}{c c}
+    \begin{minipage}{.43\textwidth}
+      \includegraphics[width=\linewidth]{Untitled (7).png} 
+    \end{minipage}
+    &
+    \begin{minipage}{.56\textwidth}
+    Пять безмолвных философов сидят вокруг круглого стола, перед каждым философом стоит миска с рисом и по бокам палочки для еды. Палочка лежит на столе между каждой парой ближайших философов.\\ Каждый философ может либо есть, либо размышлять. Количество риса не ограничено. Философ может есть только тогда, когда держит две палочки — взятую справа и слева
+    \end{minipage}
+  \end{tabular}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Тестирование на основе сетей Петри}
+  \begin{enumerate}
+      \Large \item Создаем модель системы, используя cеть Петри
+      \Large \item Генерируем на основе модели тесты
+  \end{enumerate}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Создание модели системы}
+  \Large Помимо моделей Петри, модели различных систем можно строить также на основе:
+  \begin{itemize}
+      \Large \item Потокового графа
+      \Large \item Процессной сети Кана (KPN)
+      \Large \item Конечных автоматов
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Где всё это строить?}
+  \Large Для этой задачи придумали Desing/CPN (ЯП - ML, 1989) \\
+  \Large Позже расширили функциональность и создали CPN tools (2000-2010)
+  \begin{itemize}
+      \Large \item \textcolor{blue}{\url{https://cpntools.org}}
+      \Large \item \textcolor{blue}{\url{http://daze.ho.ua/cpnmpru.pdf}}
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Модель на основе сетей Петри}
+      \begin{figure}[ht]
+        \centering
+        \includegraphics[width=\linewidth]{ttttt.png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Модель на основе конечных автоматов}
+      \begin{figure}[ht]
+        \centering
+        \includegraphics[width=\linewidth]{image_2023-04-05_07-28-55.png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Парсинг в json}
+  \texttt{\scriptsize{\{ \\ \tab"places": {[} \\\tab\tab\{\\ \tab\tab\tab"guid": "e57c0830-148f-11e8-bb7f-adf9986e1043",
+\\ \tab\tab\tab"identifier": "user created" \\ \tab\tab\} \\ \tab{]}, \\ \tab"transitions": {[} \\ \tab\tab\{\\ \tab\tab\tab"guid":
+``df65a6e0-148f-11e8-bb7f-adf9986e1043"\\ \tab\tab\tab"identifier": "Create User", \\ \tab\tab\}
+\\ \tab{]}, \\ \tab"arcs": {[} \\ \tab\tab\{ \\ \tab\tab\tab"from\_guid":
+"e57c0830-148f-11e8-bb7f-adf9986e1043", \\ \tab\tab\tab"to\_guid":
+``df65a6e0-148f-11e8-bb7f-adf9986e1043" \\ \tab\tab\} \\ \tab{]} \\\}
+}
+}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Загрузка модели}
+  \Large Мы умеем хранить .json (.cpn) модель \\Что дальше?
+  \end{frame}
+  \begin{frame}[fragile]  
+  \frametitle{Загрузка модели}
+  \Large Реализовать свою библиотеку или поискать решение, придуманное за вас.
+  \begin{itemize}
+      \Large \item \href{https://github.com/AmanziTel/cpn}{Ruby}
+      \Large \item \href{https://github.com/tuplle/petri4j}{Kotlin}
+      \Large \item \href{https://snakes.ibisc.univ-evry.fr/}{Python}
+      \Large \item \href{https://github.com/hsluoyz/CPetriNet}{С/C++}
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Пример \#1}
+  non-UI CPN Tools on C++ 
+\texttt{\scriptsize{\\CCPNet *cpnet = new CCPNet(); \\
+cpnet->addPlace("P1", "int", CValue("int", 1, "int", 10)); \\
+cpnet->addPlace("P2", "int"); \\
+cpnet->addPlace("P3", "int"); \\
+cpnet->addTransition("T1\_2"); \\
+cpnet->transitionAddFromPlaceAndValue("T1\_2", "P1", CValue("int", 1, "int", 10)); \\
+cpnet->transitionAddToPlaceAndValue("T1\_2", "P2", CValue("int", 1, "int", 10)); \\
+cpnet->addTransition("T2\_3"); \\
+cpnet->transitionAddFromPlaceAndValue("T2\_3", "P2", CValue("int", 1, "int", 10)); \\
+cpnet->transitionAddToPlaceAndValue("T2\_3", "P3", CValue("int", 1, "int", 10)); \\
+cpnet->initAllTransitions(); \\
+cpnet->fireToEnd(); \\
+cout \ll \texttt{cpnet->places2String(); }}}
+ \end{frame} 
+\begin{frame}[fragile]  
+  \frametitle{Пример \#2}
+\texttt{\scriptsize{class UserNoteNet \textless{} Rhizome::Net \\ \tab runner \{
+Runner.new('user-note.bpf', marking: {[}'user not created'{]}) \}
+\\ \tab transition('Create User') \{ @user = User.create! \} \\ \tab transition('Destroy User') \{ @user.destroy \} \\ \tab transition('Create Note') \{ @note = Note.create!(user: @user) \} \\ \tab transition('Destroy Note') \{ @note.destroy\} \\ \tab place('user not created') do \\ \tab\tab empty \{ expect(User.count).to be\textgreater{} 0 \} \\ \tab\tab filled \{ expect(User.count).to eq(0) \} \\ \tab end \\ \tab place('user created') do \\ \tab\tab empty \{ expect(User.count).to eq(0) \} \\ \tab\tab filled
+\{ expect(User.count).to be \textgreater{} 0 \} \\ \tab end \\ \tab place('note
+created') do \\ \tab\tab empty \{ expect(Note.count).to eq(0) \} \\ \tab\tab filled \{
+expect(Note.count).to be \textgreater{} 0 \} \\ \tab end\\end}
+}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Схема программы}
+      \begin{figure}[]
+        \centering
+        \includegraphics[width=0.5\linewidth]{ggg.png}
+        \end{figure}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Обход сети}
+  Существуют разные алгоритмы обхода, рассмотрим один из них:
+  \begin{enumerate}
+      \item Даем каждому переходу одинаковую вероятность (4 перехода = 0,25 каждому)
+      \item Генерируем случайное число - порог вероятности выбора перехода
+      \item Выбираем первый переход с подходящей под порог вероятностью, который может сработать
+      \item Срабатываем переход
+      \item Проверяем пустые и заполненные позиции
+      \item Уменьшаем вероятность сработанного перехода в 2 раза
+      \item Если все переходы сработали хотя бы раз, останавливаемся. Если нет, повторяем спункта 2
+  \end{enumerate}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Успешные прогоны программы}
+  \footnotesize{\texttt{\$ bin/rhizome \\
+Traversing }	\textbf{user\_note} \texttt{net:\\
+\tab Initial marking: user not created\\
+ \tab Executing }	\textbf{Create User}\\ \texttt{
+\tab\tab New marking: user created\\
+\tab\tab Transitions left: Destroy User, Create Note, Destroy Note\\
+ \tab Executing }	\textbf{Create Note}\\ \texttt{
+ \tab\tab New marking: user created, note created\\
+ \tab\tab Transitions left: Destroy User, Destroy Note\\
+ \tab Executing }	\textbf{Destroy Note}\\ \texttt{
+ \tab\tab New marking: user created\\
+ \tab\tab Transitions left: Destroy User\\
+ \tab Executing }	\textbf{Destroy User}\\ \texttt{
+ \tab\tab New marking: user not created\\
+Finished traversing } \textbf{user\_note} \texttt{net.\\}
+}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Успешные прогоны программы}
+  \footnotesize{\texttt{\$ bin/rhizome \\
+Traversing 	} \textbf{user\_note} \texttt{net:\\
+\tab Initial marking: user not created\\
+ \tab Executing } 	\textbf{Create User}\\\texttt{
+\tab\tab New marking: user created\\
+\tab\tab Transitions left: Destroy User, Create Note, Destroy Note\\
+ \tab Executing } 	\textbf{Destroy User}\\\texttt{
+ \tab\tab New marking: user not created\\
+ \tab\tab Transitions left: Create Note, Destroy Note\\
+  \tab Executing }	\textbf{Create User}\\ \texttt{
+\tab\tab New marking: user created\\
+\tab\tab Transitions left: Create Note, Destroy Note\\
+ \tab Executing 	} \textbf{Create Note}\\\texttt{
+ \tab\tab New marking: user created, note created\\
+ \tab\tab Transitions left: Destroy Note\\
+ \tab Executing 	}\textbf{Destroy Note}\\\texttt{
+ \tab\tab New marking: user created\\
+Finished traversing} \textbf{user\_note} \texttt{net.\\}
+}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Баг или фича?}
+  \begin{wrapfigure}{r}{2cm}
+    \includegraphics[width=\linewidth]{bugws.png}
+  \end{wrapfigure}
+  \footnotesize{\texttt{\$ bin/rhizome \\
+Traversing} \textbf{user\_note} \texttt{net: \\
+ \tab Initial marking: user not created\\
+ \tab Executing} \textbf{Create User}\\ \texttt{
+ \tab\tab New marking: user created\\
+ \tab\tab Transitions left: Destroy User, Create Note, Destroy Note\\
+ \tab Executing} \textbf{Create Note}\\ \texttt{
+ \tab\tab New marking: user created, note created\\
+ \tab\tab Transitions left: Destroy User, Destroy Note\\
+ \tab Executing } \textbf{Destroy User}\\
+\texttt{\textcolor{red}{ActiveRecord::InvalidForeignKey: PG::ForeignKeyViolation: ERROR: update or delete on table "users" violates foreign key constraint "fk\_rails\_83d9817008"\ on table "notes"\ DETAIL: Key (id)=(1) is still referenced from table “notes".}}}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Преимущества}
+  \Large Преимущества тестирования на основе сетей Петри относительно обычного тест фреймворка:
+  \begin{itemize}
+      \Large \item Меньше кода (время на написание и поддержку тестов сократилось)
+      \Large \item Тестовое покрытие увеличилось
+      \Large \item Время выполнения осталось прежним
+  \end{itemize}
+\end{frame}
+\begin{frame}[fragile]  
+  \frametitle{Ссылки}
+    \begin{itemize}
+      \item \href{https://www.researchgate.net/figure/Petri-net-model-of-a-chemical-reaction-The-formation-of-water-from-oxygen-and-hydrogen_fig1_220132810}{Chemistry Petri net}
+      \item \href{https://www.azimuthproject.org/azimuth/show/Petri+net}{Пример со слайдов}
+      \item \href{https://en.wikipedia.org/wiki/Carl_Adam_Petri}{Биография Петри}
+      \item \href{https://en.wikipedia.org/wiki/Dining_philosophers_problem}{Обедающие философы}
+      \item \href{http://sa.technolog.edu.ru/repository/mmodtp_petri.pdf}{Способы задания сетей Петри}
+      \item \href{https://youtu.be/jfW421q0Mow}{Хорошая лекция про сети Петри}
+      \item \href{https://assets.ctfassets.net/ut4a3ciohj8i/13fzaTS3fKUYCCsGae8qyk/defe9855e4e70078fba071a6d690d9e0/Alexey_Rodionov_Petri_nets_based_testing.pdf}{Тестирование на основе сетей Петри}
+      \item \href{https://studfile.net/preview/9589149/page:22/}{Конечные автоматы и сети Петри}
+  \end{itemize}
+\end{frame}
+\end{document}
+
